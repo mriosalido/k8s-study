@@ -1,18 +1,12 @@
 package echoserver
 
 // import (
-// 	"context"
 // 	"fmt"
 // 	"io"
 // 	"os"
 // 	"strconv"
 
-// 	"golang.org/x/net/http2"
-// 	"golang.org/x/net/http2/h2c"
-// 	"google.golang.org/grpc"
 // 	"google.golang.org/grpc/credentials"
-// 	"google.golang.org/grpc/peer"
-// 	"google.golang.org/grpc/reflection"
 // )
 
 import (
@@ -23,6 +17,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+ 	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -30,6 +25,12 @@ import (
 	"k8s-study/version"
 
 	"github.com/spf13/cobra"
+
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/reflection"
+ 	"google.golang.org/grpc/peer"
 )
 
 //go:generate protoc -I.  --go_out=plugins=grpc:. ./hello.proto
@@ -51,14 +52,112 @@ func StartHttpServer(port int) {
 	server.ListenAndServe()
 }
 
+func StartTCPServer(port int) {
+	addr := ":" + strconv.Itoa(port)
+	l, err := net.Listen("tcp", addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer l.Close()
+
+	fmt.Printf("listening on %s, tcp\n", addr)
+
+	for {
+		// Listen for an incoming connection.
+		conn, err := l.Accept()
+		if err != nil {
+			panic(err)
+		}
+
+		go handleTcpConnection(conn)
+	}
+}
+
+func StartUDPServer(port int) {
+	addr := ":" + strconv.Itoa(port)
+	pc, err := net.ListenPacket("udp", addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer pc.Close()
+
+	fmt.Printf("listening on %s, udp\n", addr)
+
+	for {
+		buf := make([]byte, 1024)
+		n, addr, err := pc.ReadFrom(buf)
+		if err != nil {
+			continue
+		}
+		go handleUdpPackageConn(pc, addr, buf[:n])
+	}
+}
+
+func StartHttp2CleartextServer(port int) {
+	server := &http.Server{
+		Addr:    "0.0.0.0:" + strconv.Itoa(port),
+		Handler: h2c.NewHandler(http.HandlerFunc(handler), &http2.Server{}),
+	}
+
+	fmt.Printf("listening on %s, support http1.0, http1.1, non-TLS HTTP/2 (aka h2c, upgrade, prior knowledge)\n", server.Addr)
+	server.ListenAndServe()
+}
+
+func StartGrpcServer(port int) {
+	addr := ":" + strconv.Itoa(port)
+	lis, err := net.Listen("tcp", addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	s := grpc.NewServer()
+	reflection.Register(s)
+	RegisterHelloWorldServer(s, &GrpcServer{})
+
+	fmt.Printf("listening on %s, grpc\n", addr)
+
+	if err := s.Serve(lis); err != nil {
+		panic(err)
+	}
+}
+
+type GrpcServer struct{
+	UnimplementedHelloWorldServer
+}
+
+func (*GrpcServer) Greeting(ctx context.Context, msg *GreetingMessage) (*GreetingReply, error) {
+	name, err := os.Hostname()
+
+	if err != nil {
+		panic(err)
+	}
+
+	p, ok := peer.FromContext(ctx)
+
+	if !ok {
+		panic(fmt.Errorf("get peer from context not success"))
+	}
+
+	return &GreetingReply{
+		Hostname:      name,
+		ClientAddress: p.Addr.String(),
+		AuthInfo:      "",
+	}, nil
+}
+
 func main(cmd *cobra.Command, args []string) {
-	StartHttpServer(8001)
-	// go StartHttp2CleartextServer(8002)
+	go StartHttpServer(8001)
+	go StartHttp2CleartextServer(8002)
 	// go StartHttp2TLSServer(8003)
-	// go StartGrpcServer(8004)
+	go StartGrpcServer(8004)
 	// go StartGrpcWithTLSServer(8005)
-	// go StartTCPServer(8006)
-	// StartUDPServer(8007)
+	go StartTCPServer(8006)
+	StartUDPServer(8007)
 }
 
 func getClientIP(req *http.Request) string {
@@ -141,4 +240,30 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	printf(w, "\n")
+}
+
+func handleTcpConnection(conn net.Conn) {
+	buf := make([]byte, 1024)
+	defer conn.Close()
+
+	for {
+		reqLen, err := conn.Read(buf)
+
+		if err != nil {
+
+			// client exit
+			if err == io.EOF {
+				break
+			}
+
+			fmt.Println("Error reading:", err.Error())
+			break
+		}
+
+		_, _ = conn.Write([]byte(fmt.Sprintf("Message received: %s\n", buf[:reqLen])))
+	}
+}
+
+func handleUdpPackageConn(pc net.PacketConn, addr net.Addr, buf []byte) {
+	pc.WriteTo([]byte(fmt.Sprintf("Message received: %s\n", string(buf))), addr)
 }

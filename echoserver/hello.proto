@@ -1,6 +1,7 @@
 syntax = "proto3";
+package echoserver;
 
-package main;
+option go_package = "k8s-study/echoserver";
 
 message GreetingMessage {}
 

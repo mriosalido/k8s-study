@@ -33,10 +33,10 @@ import (
 	"k8s-study/echoserver"
 	"k8s-study/version"
 	"k8s.io/klog/v2"
-	// auditproxy "k8s.io/kubernetes/test/images/agnhost/audit-proxy"
-	// "k8s.io/kubernetes/test/images/agnhost/connect"
+	auditproxy "k8s-study/audit-proxy"
+	"k8s-study/connect"
 	// crdconvwebhook "k8s.io/kubernetes/test/images/agnhost/crd-conversion-webhook"
-	// "k8s.io/kubernetes/test/images/agnhost/entrypoint-tester"
+	"k8s-study/entrypoint-tester"
 	// "k8s.io/kubernetes/test/images/agnhost/fakegitserver"
 	// "k8s.io/kubernetes/test/images/agnhost/inclusterclient"
 	// "k8s.io/kubernetes/test/images/agnhost/mounttest"
@@ -48,7 +48,7 @@ import (
 	// "k8s.io/kubernetes/test/images/agnhost/openidmetadata"
 	// portforwardtester "k8s.io/kubernetes/test/images/agnhost/port-forward-tester"
 	// "k8s.io/kubernetes/test/images/agnhost/porter"
-	// servehostname "k8s.io/kubernetes/test/images/agnhost/serve-hostname"
+	servehostname "k8s-study/serve-hostname"
 )
 
 func main() {
@@ -70,10 +70,10 @@ func main() {
 	rootCmd.AddCommand(webhook.CmdWebhook)
 	rootCmd.AddCommand(echoserver.CmdEchoServer)
 
-	// rootCmd.AddCommand(auditproxy.CmdAuditProxy)
-	// rootCmd.AddCommand(connect.CmdConnect)
+	rootCmd.AddCommand(auditproxy.CmdAuditProxy)
+	rootCmd.AddCommand(connect.CmdConnect)
 	// rootCmd.AddCommand(crdconvwebhook.CmdCrdConversionWebhook)
-	// rootCmd.AddCommand(entrypoint.CmdEntrypointTester)
+	rootCmd.AddCommand(entrypoint.CmdEntrypointTester)
 	// rootCmd.AddCommand(fakegitserver.CmdFakeGitServer)
 	// rootCmd.AddCommand(inclusterclient.CmdInClusterClient)
 	// rootCmd.AddCommand(mounttest.CmdMounttest)
@@ -84,7 +84,7 @@ func main() {
 	// rootCmd.AddCommand(nosnatproxy.CmdNoSnatTestProxy)
 	// rootCmd.AddCommand(porter.CmdPorter)
 	// rootCmd.AddCommand(portforwardtester.CmdPortForwardTester)
-	// rootCmd.AddCommand(servehostname.CmdServeHostname)
+	rootCmd.AddCommand(servehostname.CmdServeHostname)
 	// rootCmd.AddCommand(openidmetadata.CmdTestServiceAccountIssuerDiscovery)
 	
 	// NOTE(claudiub): Some tests are passing logging related flags, so we need to be able to
