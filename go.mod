@@ -6,7 +6,6 @@ require (
 	bitbucket.org/bertimus9/systemstat v0.0.0-20180207000608-0eeff89b0690
 	github.com/evanphx/json-patch v4.11.0+incompatible
 	github.com/spf13/cobra v1.2.1
-	golang.org/x/sys v0.0.0-20211113001501-0c823b97ae02
 	k8s.io/api v0.22.3
 	k8s.io/apiextensions-apiserver v0.22.3
 	k8s.io/apimachinery v0.22.3

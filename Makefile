@@ -1,12 +1,12 @@
 
-VERSION=1.2
+VERSION=1.3
 
 build:
 	sed -i -e 's/var Version = ".*/var Version = "$(VERSION)"/' version/version.go
 	go build
 
 image: build
-	docker build -t mriosalido/k8s-study:$(VERSION) .
+	docker build -t mriosalido/k8s-study:v$(VERSION) .
 
 push: image
-	docker push mriosalido/k8s-study:$(VERSION)
+	docker push mriosalido/k8s-study:v$(VERSION)

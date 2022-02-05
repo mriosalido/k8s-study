@@ -17,7 +17,7 @@ limitations under the License.
 package main
 
 import (
-	// "flag"
+	"flag"
 
 	"github.com/spf13/cobra"
 
@@ -32,7 +32,7 @@ import (
 	"k8s-study/webhook"
 	"k8s-study/echoserver"
 	"k8s-study/version"
-	// "k8s.io/klog/v2"
+	"k8s.io/klog/v2"
 	// auditproxy "k8s.io/kubernetes/test/images/agnhost/audit-proxy"
 	// "k8s.io/kubernetes/test/images/agnhost/connect"
 	// crdconvwebhook "k8s.io/kubernetes/test/images/agnhost/crd-conversion-webhook"
@@ -89,8 +89,8 @@ func main() {
 	
 	// NOTE(claudiub): Some tests are passing logging related flags, so we need to be able to
 	// accept them. This will also include them in the printed help.
-	// loggingFlags := &flag.FlagSet{}
-	// klog.InitFlags(loggingFlags)
-	// rootCmd.PersistentFlags().AddGoFlagSet(loggingFlags)
+	loggingFlags := &flag.FlagSet{}
+	klog.InitFlags(loggingFlags)
+	rootCmd.PersistentFlags().AddGoFlagSet(loggingFlags)
 	rootCmd.Execute()
 }
